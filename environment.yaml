@@ -1,0 +1,14 @@
+name: signac
+channels:
+ - bioconda
+ - conda-forge
+ - anaconda
+dependencies:
+ - python>=3.7
+ - snakemake
+ - macs2
+ - r-base=4.0.3
+ - hdf5
+ - pip
+ - pip:
+   - umap-learn

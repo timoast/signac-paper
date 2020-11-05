@@ -1,0 +1,10 @@
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.A.txt.gz
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.C.txt.gz
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.G.txt.gz
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.T.txt.gz
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.singlecell.csv
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.fragments.tsv.gz
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.fragments.tsv.gz.tbi
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.chrM_refAllele.txt
+https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.depthTable.txt
