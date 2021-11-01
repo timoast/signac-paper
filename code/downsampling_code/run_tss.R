@@ -6,9 +6,17 @@ objpath <- args[1]
 nrep <- args[2]
 timefile <- args[3]
 outfile <- args[4]
+ncore <- as.numeric(args[5])
 
 # load object
 obj <- readRDS(file = objpath)
+
+message("Using ", ncore, " cores")
+if (ncore > 1) {
+  library(future)
+  plan("multicore", workers = ncore)
+  options(future.globals.maxSize = 100 * 1024^3)
+}
 
 # run tss enrichment n times
 invisible(gc())

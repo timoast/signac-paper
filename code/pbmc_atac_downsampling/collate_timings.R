@@ -1,10 +1,10 @@
-downsamples <- c('50000', '100000', '200000', '300000', '400000', '500000', '600000', '700000')
+downsamples <- seq(from = 1000, to = 26000, by = 2000)
 cores <- c(1, 2, 4, 8)
 
 results_df <- data.frame()
 
-runtime <- read.table(file = "data/biccn/benchmarks/signac_object_creation.tsv", sep = "\t")
-runtime_archr <- read.table(file = "data/biccn/benchmarks/archr_object_creation.tsv", sep = "\t")
+runtime <- read.table(file = "data/pbmc_atac/benchmarks/signac_object_creation.tsv", sep = "\t")
+runtime_archr <- read.table(file = "data/pbmc_atac/benchmarks/archr_object_creation.tsv", sep = "\t")
 runtime_archr <- runtime_archr[runtime_archr$V2 == "Arrow", ]
 result <- data.frame(
   "Cells" = c(runtime$V4, runtime_archr$V4),
@@ -17,8 +17,8 @@ results_df <- rbind(results_df, result)
 
 for (i in downsamples) {
   for (j in cores) {
-    runtime <- readLines(con = paste0("data/biccn/benchmarks/featmat_runtime_", i, "_", j, ".txt"))
-    rt_archr <- readLines(con = paste0("data/biccn/benchmarks/archr_featmat_runtime_", i, "_", j, ".txt"))
+    runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/featmat_runtime_", i, "_", j, ".txt"))
+    rt_archr <- readLines(con = paste0("data/pbmc_atac/benchmarks/archr_featmat_runtime_", i, "_", j, ".txt"))
     runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
     rt_archr <- sapply(rt_archr, as.numeric, USE.NAMES = FALSE)
     result <- data.frame(
@@ -33,7 +33,7 @@ for (i in downsamples) {
 }
 
 for (i in downsamples) {
-  runtime <- readLines(con = paste0("data/biccn/benchmarks/nucleosome_runtime_", i, ".txt"))
+  runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/nucleosome_runtime_", i, ".txt"))
   runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
   result <- data.frame(
     "Cells" = i,
@@ -47,8 +47,8 @@ for (i in downsamples) {
 
 for (i in downsamples) {
   for (j in cores) {
-    runtime <- readLines(con = paste0("data/biccn/benchmarks/ga_runtime_", i, "_", j, ".txt"))
-    rt_archr <- readLines(con = paste0("data/biccn/benchmarks/archr_geneactivity_runtime_", i, "_", j, ".txt"))
+    runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/ga_runtime_", i, "_", j, ".txt"))
+    rt_archr <- readLines(con = paste0("data/pbmc_atac/benchmarks/archr_geneactivity_runtime_", i, "_", j, ".txt"))
     runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
     rt_archr <- sapply(rt_archr, as.numeric, USE.NAMES = FALSE)
     result <- data.frame(
@@ -64,7 +64,7 @@ for (i in downsamples) {
 
 for (i in downsamples) {
   for (j in cores) {
-    runtime <- readLines(con = paste0("data/biccn/benchmarks/tss_runtime_", i, "_", j, ".txt"))
+    runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/tss_runtime_", i, "_", j, ".txt"))
     runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
     result <- data.frame(
       "Cells" = i,
@@ -78,7 +78,7 @@ for (i in downsamples) {
 }
 
 for (i in downsamples) {
-  runtime <- readLines(con = paste0("data/biccn/benchmarks/tfidf_runtime_", i, ".txt"))
+  runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/tfidf_runtime_", i, ".txt"))
   runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
   result <- data.frame(
     "Cells" = i,
@@ -91,7 +91,7 @@ for (i in downsamples) {
 }
 
 for (i in downsamples) {
-  runtime <- readLines(con = paste0("data/biccn/benchmarks/svd_runtime_", i, ".txt"))
+  runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/svd_runtime_", i, ".txt"))
   runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
   result <- data.frame(
     "Cells" = i,
@@ -104,7 +104,7 @@ for (i in downsamples) {
 }
 
 for (i in downsamples) {
-  runtime <- readLines(con = paste0("data/biccn/benchmarks/archr_lsi_runtime_", i, ".txt"))
+  runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/archr_lsi_runtime_", i, ".txt"))
   runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
   result <- data.frame(
     "Cells" = i,
@@ -117,7 +117,7 @@ for (i in downsamples) {
 }
 
 for (i in downsamples) {
-  runtime <- readLines(con = paste0("data/biccn/benchmarks/archr_est_lsi_runtime_", i, ".txt"))
+  runtime <- readLines(con = paste0("data/pbmc_atac/benchmarks/archr_est_lsi_runtime_", i, ".txt"))
   runtime <- sapply(runtime, as.numeric, USE.NAMES = FALSE)
   result <- data.frame(
     "Cells" = i,
@@ -140,4 +140,4 @@ results_df <- rbind(results_df, lsi)
 results_df$Cells <- as.numeric(results_df$Cells)
 results_df$Cores <- as.factor(results_df$Cores)
 
-write.table(x = results_df, file = "data/biccn/timings.tsv")
+write.table(x = results_df, file = "data/pbmc_atac/timings.tsv")

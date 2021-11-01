@@ -9,6 +9,11 @@ dependencies:
  - macs2
  - r-base=4.0.3
  - hdf5
+ - htslib
+ - leidenalg
+ - python-igraph
  - pip
  - pip:
    - umap-learn
+   - scale-atac
+   - scanpy

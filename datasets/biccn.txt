@@ -1,3 +1,3 @@
-https://www.dropbox.com/s/evn6dp8pat7psd4/fragments.sort.bed.gz
-https://www.dropbox.com/s/07lakhyd4v0ky06/fragments.sort.bed.gz.tbi
-https://www.dropbox.com/s/amw28rwyia6oewc/unified_peaks.bed
+https://biccn.s3.amazonaws.com/public/fragments.bed.gz
+https://biccn.s3.amazonaws.com/public/fragments.bed.gz.tbi
+https://biccn.s3.amazonaws.com/public/unified_peaks.bed

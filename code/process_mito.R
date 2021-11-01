@@ -161,6 +161,8 @@ for (i in seq_along(epi_clones)) {
     object = epithelial,
     ident.1 = epi_clones[[i]],
     test.use = "LR",
+    slot = "counts",
+    logfc.threshold = 0.1,
     latent.vars = "nCount_peaks",
     only.pos = TRUE
   )

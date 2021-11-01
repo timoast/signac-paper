@@ -1,0 +1,4 @@
+https://cf.10xgenomics.com/samples/cell-atac/1.2.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz
+https://cf.10xgenomics.com/samples/cell-atac/1.2.0/atac_pbmc_10k_v1/atac_pbmc_10k_v1_fragments.tsv.gz
+https://cf.10xgenomics.com/samples/cell-atac/1.2.0/atac_pbmc_5k_nextgem/atac_pbmc_5k_nextgem_fragments.tsv.gz
+https://cf.10xgenomics.com/samples/cell-atac/1.2.0/atac_pbmc_5k_v1/atac_pbmc_5k_v1_fragments.tsv.gz

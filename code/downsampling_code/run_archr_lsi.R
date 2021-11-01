@@ -1,35 +1,41 @@
-library(Signac)
+library(ArchR)
 library(GenomicRanges)
 
 args = commandArgs(trailingOnly = TRUE)
-ncore <- as.numeric(args[1])
-fragpath <- args[2]
-peakpath <- args[3]
-nrep <- args[4]
-timefile <- args[5]
-outfile <- args[6]
+arrowfile <- args[1]
+peakpath <- args[2]
+nrep <- args[3]
+timefile <- args[4]
+genome <- args[5]
 
-message("Using ", ncore, " cores")
-if (ncore > 1) {
-  library(future)
-  plan("multiprocess", workers = ncore)
-  options(future.globals.maxSize = 100 * 1024^3)
-}
-
-# load fragment object
-frags <- readRDS(file = fragpath)
+# load archr project for downsampling level
+proj <- loadArchRProject(path = arrowfile)
 
 # load peaks
 peaks <- read.table(file = peakpath, sep = "\t", header = TRUE)
 peaks <- makeGRangesFromDataFrame(peaks)
+# remove chrM
+peaks <- peaks[seqnames(peaks) != "chrM"]
 message("Using ", length(peaks), " peaks")
+
+# set threads
+addArchRThreads(threads = 1)
+addArchRGenome(genome)
+
+proj <- addPeakSet(ArchRProj = proj, peakSet = peaks, force = TRUE)
+proj <- addPeakMatrix(ArchRProj = proj, force = TRUE)
 
 # run featurematrix n times
 invisible(gc())
 timings <- c()
 for (i in seq_len(length.out = as.numeric(x = nrep))) {
   start.time <- Sys.time()
-  fmat <- FeatureMatrix(fragments = frags, features = peaks, cells = Cells(frags))
+  proj <- addIterativeLSI(
+    ArchRProj = proj,
+    useMatrix = "PeakMatrix",
+    force = TRUE,
+    sampleCellsPre = NULL
+  )
   elapsed <- as.numeric(Sys.time() - start.time, units = "secs")
   timings <- c(timings, elapsed)
   invisible(gc())
@@ -37,6 +43,3 @@ for (i in seq_len(length.out = as.numeric(x = nrep))) {
 
 # save timings
 writeLines(text = sapply(X = timings, FUN = as.character), con = timefile, sep = "\n")
-
-# save last count matrix for next step
-saveRDS(object = fmat, file = outfile, version = 2)

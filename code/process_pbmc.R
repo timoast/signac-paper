@@ -3,6 +3,7 @@ library(Seurat)
 library(SeuratDisk)
 library(EnsDb.Hsapiens.v86)
 library(GenomeInfoDb)
+library(ggplot2)
 
 set.seed(1234)
 
@@ -40,11 +41,23 @@ DefaultAssay(pbmc) <- "cellranger"
 pbmc <- NucleosomeSignal(pbmc)
 pbmc <- TSSEnrichment(pbmc, fast = FALSE)
 
+vln <- VlnPlot(pbmc, features = c("TSS.enrichment", "nucleosome_signal"), pt.size = 0)
+vln[[1]] <- vln[[1]] + ggtitle("TSS enrichment") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  xlab("")
+vln[[2]] <- vln[[2]] + ggtitle("Nucleosome signal") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  xlab("")
+
+saveRDS(object = vln, file = "figures/qc_dist.rds")
+
 pbmc <- subset(
   x = pbmc,
-  subset = nCount_cellranger < 100000 &
+  subset = nCount_cellranger < 70000 &
     nCount_RNA < 25000 &
-    nCount_cellranger > 1000 &
+    nCount_cellranger > 5000 &
     nCount_RNA > 1000 &
     nucleosome_signal < 2 &
     TSS.enrichment > 1
@@ -58,22 +71,30 @@ pbmc <- SCTransform(pbmc)
 pbmc <- RunPCA(pbmc)
 pbmc <- RunUMAP(pbmc, dims = 1:50, reduction.name = "umap.rna")
 pbmc <- FindNeighbors(pbmc, dims = 1:50)
-pbmc <- FindClusters(pbmc, algorithm = 3, resolution = 1.5)
+pbmc <- FindClusters(pbmc, algorithm = 3)
 
 # map to PBMC reference
 reference <- LoadH5Seurat("data/pbmc/pbmc_multimodal.h5seurat")
 
-transfer_anchors <- FindTransferAnchors(
+transfer_anchor <- FindTransferAnchors(
   reference = reference,
   query = pbmc,
   normalization.method = "SCT",
   reference.reduction = "spca",
-  dims = 1:50
+  recompute.residuals = TRUE,
+  dims = 1:30
 )
 
 predictions <- TransferData(
-  anchorset = transfer_anchors, 
+  anchorset = transfer_anchor, 
   refdata = reference$celltype.l2,
+  weight.reduction = pbmc[['pca']],
+  dims = 1:50
+)
+
+pred.l1 <- TransferData(
+  anchorset = transfer_anchor, 
+  refdata = reference$celltype.l1,
   weight.reduction = pbmc[['pca']],
   dims = 1:50
 )
@@ -83,11 +104,13 @@ pbmc <- AddMetaData(
   metadata = predictions
 )
 
+pbmc$coarse_celltype <- pred.l1$predicted.id
+
 # for spurious cell annotations, assign to most abundant classification in cells cluster
 ct.remove <- names(which(table(pbmc$predicted.id) < 10))
 
-# reassign erythrocytes since we know these are nuclei
-ct.remove <- c(ct.remove, "Eryth")
+# reassign platelet since we know these are nuclei
+ct.remove <- c(ct.remove, c("Platelet", "Eryth"))
 
 cell.reassign <- WhichCells(pbmc, expression = predicted.id %in% ct.remove)
 pbmc$celltype <- pbmc$predicted.id
@@ -108,7 +131,8 @@ DefaultAssay(pbmc) <- "cellranger"
 peaks <- CallPeaks(
   object = pbmc,
   group.by = "celltype",
-  additional.args = "--max-gap 50"
+  additional.args = "--max-gap 50",
+  macs2.path = "/home/stuartt/miniconda3/envs/signac/bin/macs2"
 )
 
 peaks <- keepStandardChromosomes(peaks, pruning.mode = "coarse")
@@ -139,29 +163,6 @@ pbmc <- RunSVD(pbmc)
 pbmc <- RunUMAP(pbmc, reduction = "lsi", dims = 2:40, reduction.name = "umap.atac")
 pbmc <- FindNeighbors(pbmc, reduction = "lsi", dims = 2:40)
 pbmc <- FindClusters(pbmc, algorithm = 3)
-
-# # subcluster CD8 Naive
-cd8_stress <- pbmc[, pbmc$celltype == "CD8 Naive"]
-cd8_stress <- WhichCells(cd8_stress, expression = seurat_clusters == 11)
-pbmc$celltype <- ifelse(colnames(pbmc) %in% cd8_stress, "CD8 Naive JUN-", pbmc$celltype)
-
-# joint clustering
-pbmc <- FindMultiModalNeighbors(
-  object = pbmc,
-  reduction.list = list("pca", "lsi"), 
-  dims.list = list(1:50, 2:40),
-  modality.weight.name = "RNA.weight",
-  verbose = TRUE
-)
-
-pbmc <- RunUMAP(
-  object = pbmc,
-  nn.name = "wknn",
-  reduction.name = "jumap",
-  reduction.key = "JUMAP_",
-  assay = "RNA",
-  verbose = TRUE
-)
 
 Idents(pbmc) <- "celltype"
 
@@ -201,15 +202,30 @@ pbmc <- AddMotifs(
 
 # add gene activities
 DefaultAssay(pbmc) <- "ATAC"
-
-ga <- GeneActivity(object = pbmc)
+ga <- GeneActivity(
+  object = pbmc,
+  max.width = NULL,
+  biotypes = c("lincRNA", "processed_transcript", "protein_coding")
+)
 pbmc[["GA"]] <- CreateAssayObject(counts = ga)
+DefaultAssay(pbmc) <- "GA"
+pbmc <- NormalizeData(pbmc)
 
-levels(pbmc) <- c("CD4 Naive", "CD4 TCM", "CD4 CTL", "CD4 TEM", "CD8 Naive",
-                 "CD8 Naive JUN-", "CD8 TEM", "CD8 TCM", "MAIT", "NK", "NK_CD56bright",
-                 "NK Proliferating", "gdT",
-                 "Treg", "B naive", "B intermediate", "B memory", "Plasmablast",
-                 "CD14 Mono", "CD16 Mono",
-                 "cDC", "pDC", "HSPC")
+# cluster based on DNA accessibility assay
+DefaultAssay(pbmc) <- "cellranger"
+pbmc <- FindTopFeatures(pbmc, min.cutoff = 10)
+pbmc <- RunTFIDF(pbmc)
+pbmc <- RunSVD(pbmc, reduction.name = "bulkLSI")
+pbmc <- FindNeighbors(pbmc, reduction = "bulkLSI", dims = 2:40)
+pbmc <- FindClusters(pbmc, algorithm = 3)
 
+# Save object
+DefaultAssay(pbmc) <- "ATAC"
+Idents(pbmc) <- "celltype"
+
+levels(pbmc) <- c("CD4 Naive", "CD4 TCM", "CD4 TEM", "CD8 Naive",
+                  "CD8 TEM", "CD8 TCM", "MAIT", "NK", "NK_CD56bright", "gdT",
+                  "Treg", "B naive", "B intermediate", "B memory", "Plasmablast",
+                  "CD14 Mono", "CD16 Mono",
+                  "cDC", "pDC", "HSPC")
 saveRDS(object = pbmc, file = "objects/pbmc.rds")

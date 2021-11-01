@@ -116,6 +116,17 @@ linked_peak_overlap_eqtl <- check_overlap(
 
 # 52.6%
 
+# find number of peaks intersecting an eqtl
+
+olap <- subsetByOverlaps(granges(pbmc), eqtl_blood)
+length(olap) / nrow(pbmc) * 100
+
+ol2 <- subsetByOverlaps(StringToGRanges(lnk$peak), eqtl_blood)
+# 2054
+# 1.329415 %
+
+# 2.328742
+
 # ----- Permute links -----
 
 # what's the expected number of correctly linked genes

@@ -2,6 +2,9 @@ library(ggplot2)
 library(patchwork)
 
 dimplot.mito <- readRDS("figures/mito_dimplot.rds") & theme(text = element_text(size = 10))
+featplot.mito <- readRDS("figures/mito_allele_plot.rds") & labs(color = "Allele frequency") & theme(text = element_text(size = 10))
+featplot.mito <- featplot.mito & theme(legend.title = element_blank())
+
 varplot.mito <- readRDS("figures/mito_varplot.rds") + theme(text = element_text(size = 10))
 featplot.mito <- readRDS("figures/mito_allele_plot.rds") & labs(color = "Allele frequency") & theme(text = element_text(size = 10))
 heatmap.mito <- readRDS("figures/mito_clone_hm.rds") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(text = element_text(size = 10))
